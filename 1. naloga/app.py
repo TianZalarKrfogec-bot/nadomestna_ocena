@@ -20,3 +20,22 @@ def home():
     if "user" in session:
         return redirect("/dashboard")
     return redirect("/greet")
+
+@app.route("/greet")
+def greet():
+    return render_template("greet.html")
+
+@app.route("/register")
+def register():
+    return render_template("register.html")
+
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/dashboard")
+def dashboard():
+    return "se delam na temu"
+
+
+app.run(debug = True)
