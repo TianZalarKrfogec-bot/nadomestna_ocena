@@ -1,0 +1,104 @@
+Alternativna možnost opravljanja testa iz Flaska
+Namesto klasičnega testa lahko dijak izdela 3 spletne aplikacije v Flasku.
+
+Struktura projekta (obvezna)
+Vse aplikacije morajo biti v enem Codespace projektu:
+
+project/
+│
+├── app1.py
+├── app2.py
+├── app3.py
+│
+├── templates1/
+├── templates2/
+├── templates3/
+│
+├── static1/
+├── static2/
+├── static3/
+│
+└── db/
+└── db2/
+
+Vsaka aplikacija uporablja svoj templates in static folder.
+
+Primer menjave default templates folderja
+from flask import Flask, render_template
+
+app = Flask(
+    __name__,
+    template_folder="templates1",
+    static_folder="static1"
+)
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
+Naloge
+Dijak izdela naslednje tri aplikacije:
+
+1. Osebni zapiski
+več zapiskov
+naslov + vsebina
+pregled, urejanje, brisanje
+2. Preprosta socialna platforma
+objave (besedilo)
+slike
+pregled objav drugih uporabnikov
+3. Lastna aplikacija
+poljubna ideja
+smiselna in dovolj kompleksna
+Obvezne zahteve (za vse aplikacije)
+uporaba podatkovne baze
+uporaba session
+uporaba sinhronih klicev (Flask route)
+uporaba asinhronih klicev (AJAX)
+dijak mora razumeti vso kodo
+Dodatno
+vsaj 2 aplikaciji morata imeti uporabniški sistem (login/register)
+Ocenjevanje
+Ocena 2
+vse 3 aplikacije delujejo
+izpolnjene vse osnovne zahteve
+Ocena 3
+vse za oceno 2
+vsaj ena aplikacija uporablja zunanji API
+1 dodatna funkcionalnost v eni izmed prvih dveh aplikacij
+Ocena 4
+vse za oceno 3
+vsaj ena aplikacija uporablja drugo bazo kot TinyDB (npr. SQLite / SQLAlchemy)
+1 dodatna funkcionalnost v eni izmed prvih dveh aplikacij
+Ocena 5
+vse za oceno 4
+funkcija pozabljeno geslo
+varna hramba gesel (hashiranje)
+1 dodatna funkcionalnost v eni izmed prvih dveh aplikacij
+Primeri dodatnih funkcionalnosti
+komentarji
+like sistem
+iskanje
+filtriranje / sortiranje
+profil uporabnika
+tags
+priljubljene objave
+admin način
+Oddaja
+projekt mora biti oddan kot GitHub repozitorij (Codespace)
+vidna mora biti zgodovina dela (commiti)
+pričakuje se commit po vsakem večjem delu naloge
+(npr. baza, login, AJAX, funkcionalnosti …)
+Pomembno
+rešitev mora biti samostojna
+ni dovolj, da aplikacija samo deluje
+Dijak mora znati razložiti:
+
+delo z bazo
+session
+rout-e
+AJAX
+povezavo frontend ↔ backend
+Če dijak kode ne zna razložiti, se šteje, da je ne razume.
