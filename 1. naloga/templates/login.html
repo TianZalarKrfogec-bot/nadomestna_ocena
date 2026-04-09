@@ -1,11 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Prijava - Moji Zapiski</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        h2 { color: #1a1a1a; margin-bottom: 25px; }
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #1877f2; /* Modra barva za prijavo */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .error-box {
+            background-color: #ffebe8;
+            border: 1px solid #dd3c10;
+            color: #dd3c10;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .footer { margin-top: 25px; font-size: 14px; border-top: 1px solid #dddfe2; padding-top: 20px; }
+        .footer a { color: #1877f2; text-decoration: none; font-weight: 600; }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
+    <div class="container">
+        <h2>Prijava</h2>
+        
+        {% if error %}
+            <div class="error-box">{{ error }}</div>
+        {% endif %}
+
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Uporabniško ime" required>
+            <input type="password" name="password" placeholder="Geslo" required>
+            <button type="submit">Vpis</button>
+        </form>
+
+        <div class="footer">
+            Nimaš računa? <a href="{{ url_for('register') }}">Registriraj se</a>
+        </div>
+    </div>
 </body>
 </html>
