@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <title>(si)x - Registracija</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
+        h2 { margin: 0 0 1.5rem; color: #1e293b; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
+        label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #64748b; }
+        button { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Pridruži se (si)x</h2>
+        <form action="/register" method="POST">
+            <input type="text" name="username" placeholder="Uporabniško ime" required>
+            <input type="password" name="password" placeholder="Izberite geslo" required>
+            <label>Varnostno vprašanje:</label>
+            <select name="question">
+                <option>Ime vašega prvega ljubljenčka?</option>
+                <option>Model vašega prvega avtomobila?</option>
+                <option>Najljubša hrana iz otroštva?</option>
+            </select>
+            <input type="text" name="answer" placeholder="Vaš odgovor" required>
+            <button type="submit">Ustvari račun</button>
+        </form>
+    </div>
+</body>
+</html>

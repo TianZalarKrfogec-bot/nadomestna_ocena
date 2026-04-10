@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <title>(si)x - Prijava</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
+        h2 { margin: 0 0 1.5rem; color: #1e293b; font-weight: 700; }
+        input { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #4f46e5; }
+        .footer-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #64748b; }
+        .footer-links a { color: #6366f1; text-decoration: none; font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Vstop v (si)x</h2>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Uporabniško ime" required>
+            <input type="password" name="password" placeholder="Geslo" required>
+            <button type="submit">Prijavi se</button>
+        </form>
+        <div class="footer-links">
+            <a href="/forgot_password">Pozabljeno geslo?</a><br><br>
+            Še nimate računa? <a href="/register">Registracija</a>
+        </div>
+    </div>
+</body>
+</html>
