@@ -25,7 +25,8 @@
         }
         h2 { color: #1a1a1a; margin-bottom: 10px; font-size: 24px; }
         p.subtitle { color: #65676b; margin-bottom: 25px; font-size: 14px; }
-        input {
+        
+        input, select {
             width: 100%;
             padding: 14px;
             margin: 8px 0;
@@ -33,7 +34,15 @@
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 16px;
+            background-color: white;
         }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 2px #e7f3ff;
+        }
+
         button {
             width: 100%;
             padding: 14px;
@@ -45,7 +54,11 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 15px;
+            transition: background 0.2s;
         }
+        
+        button:hover { background-color: #36a420; }
+
         .error-box {
             background-color: #ffebe8;
             border: 1px solid #dd3c10;
@@ -53,29 +66,74 @@
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 20px;
+            font-size: 14px;
         }
+        
         .footer { margin-top: 25px; border-top: 1px solid #dddfe2; padding-top: 20px; font-size: 14px; }
         .footer a { color: #1877f2; text-decoration: none; font-weight: 600; }
+        
+        .security-info {
+            text-align: left;
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Ustvari nov račun</h2>
-        <p class="subtitle">Hitro in enostavno se pridruži projektu.</p>
+        <h2>
+            {% if session.get('need_security') %}
+                Varnostna nastavitev
+            {% else %}
+                Ustvari nov račun
+            {% endif %}
+        </h2>
+        
+        <p class="subtitle">
+            {% if session.get('need_security') %}
+                Za večjo varnost nastavite varnostno vprašanje.
+            {% else %}
+                Hitro in enostavno se pridruži projektu.
+            {% endif %}
+        </p>
 
         {% if error %}
             <div class="error-box">{{ error }}</div>
         {% endif %}
 
         <form action="/register" method="POST">
-            <input type="text" name="username" placeholder="Uporabniško ime" required>
-            <input type="password" name="password" placeholder="Geslo" required>
-            <button type="submit">Registracija</button>
+            {% if not session.get('need_security') %}
+                <input type="text" name="username" placeholder="Uporabniško ime" required>
+                <input type="password" name="password" placeholder="Geslo" required>
+            {% endif %}
+
+            <div class="security-info">Izberite varnostno vprašanje:</div>
+            <select name="security_question" required>
+                <option value="" disabled selected>Izberite vprašanje...</option>
+                <option value="ime_ljubljencka">Ime vašega prvega ljubljenčka?</option>
+                <option value="rojstni_kraj">V katerem kraju ste se rodili?</option>
+                <option value="osnovna_sola">Ime vaše osnovne šole?</option>
+                <option value="mama_priimek">Dekliški priimek vaše mame?</option>
+            </select>
+            
+            <input type="text" name="security_answer" placeholder="Odgovor na vprašanje" required>
+
+            <button type="submit">
+                {% if session.get('need_security') %}
+                    Shrani nastavitve
+                {% else %}
+                    Registracija
+                {% endif %}
+            </button>
         </form>
 
+        {% if not session.get('need_security') %}
         <div class="footer">
             Že imaš račun? <a href="{{ url_for('login') }}">Prijavi se</a>
         </div>
+        {% endif %}
     </div>
 </body>
 </html>

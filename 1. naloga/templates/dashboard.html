@@ -1,11 +1,94 @@
 <!DOCTYPE html>
-<html lang="sl-si">
+<html lang="sl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Nadzorna plošča - Moji Zapiski</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
+        .navbar { background-color: white; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar h2 { margin: 0; color: #1a1a1a; }
+        .nav-links a { text-decoration: none; color: #1877f2; font-weight: bold; margin-left: 15px; }
+        .nav-links a.logout { color: #dd3c10; }
+        
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-new { background-color: #42b72a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; transition: background 0.2s; }
+        .btn-new:hover { background-color: #36a420; }
+        
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .note-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; }
+        .note-card h3 { margin-top: 0; margin-bottom: 10px; color: #1c1e21; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .note-card p { color: #65676b; font-size: 14px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .card-actions { margin-top: 15px; display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn-edit { background-color: #1877f2; color: white; border: none; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 14px; }
+        .btn-delete { background-color: #ffebe8; color: #dd3c10; border: 1px solid #dd3c10; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        
+        .empty-state { text-align: center; padding: 50px; color: #65676b; font-size: 18px; grid-column: 1 / -1; }
+    </style>
 </head>
 <body>
-    <h1>Dashboard</h1>
+
+    <div class="navbar">
+        <h2>Moji Zapiski</h2>
+        <div class="nav-links">
+            <span>Prijavljen kot: <b>{{ uporabnik }}</b></span>
+            {% if admin in (1, 2) %}
+                <span style="color: #f2a900; margin-left: 10px;">(Admin)</span>
+            {% endif %}
+            <a href="{{ url_for('logout') }}" class="logout">Odjava</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="top-bar">
+            <h2>Vaši zapiski</h2>
+            <a href="/newNote" class="btn-new">+ Nov zapisek</a>
+        </div>
+
+        <div class="notes-grid">
+            {% if notes %}
+                {% for id, note_data in notes.items() %}
+                <div class="note-card" id="note-{{ id }}">
+                    <h3>{{ note_data.title if note_data.title else 'Brez naslova' }}</h3>
+                    <p>{{ note_data.content if note_data.content else 'Ni vsebine...' }}</p>
+                    
+                    <div class="card-actions">
+                        <a href="/dashboard/{{ id }}" class="btn-edit">Uredi</a>
+                        <button class="btn-delete" onclick="deleteNote('{{ id }}')">Izbriši</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    Še nimate zapiskov. Kliknite "+ Nov zapisek", da ustvarite prvega!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function deleteNote(noteId) {
+            if (confirm("Ali res želite izbrisati ta zapisek?")) {
+                let formData = new FormData();
+                formData.append("id", noteId);
+                // Če brišemo kot admin, bi tu dodali target_user, ampak na dashboardu smo vedno na svojih zapiskih
+                
+                fetch("/deleteNote", {
+                    method: "POST",
+                    body: formData
+                }).then(response => response.text())
+                  .then(data => {
+                      if(data === "OK") {
+                          // Odstrani kartico iz HTML-ja brez osveževanja
+                          document.getElementById("note-" + noteId).remove();
+                      } else {
+                          alert("Napaka pri brisanju!");
+                      }
+                  });
+            }
+        }
+    </script>
 </body>
 </html>

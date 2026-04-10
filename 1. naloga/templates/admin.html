@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Vsi uporabniki</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; color: #333; }
+        .navbar { background: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #333; }
+        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; color: #2c3e50; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; font-weight: 600; color: #666; }
+        tr:hover { background-color: #fafafa; }
+        .btn { padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: 0.2s; display: inline-block; }
+        .btn-view { background-color: #4caf50; color: white; }
+        .btn-view:hover { background-color: #45a049; }
+        .btn-back { color: #666; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">Moji Zapiski <span style="color: #4caf50;">Admin</span></div>
+        <div>
+            <span style="margin-right: 15px;">Prijavljen: <strong>{{ uporabnik }}</strong></span>
+            <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Odjava</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <a href="/dashboard" class="btn-back">← Nazaj na dashboard</a>
+        <br><br>
+        <div class="card">
+            <h2>Upravljanje uporabnikov</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Uporabniško ime</th>
+                        <th>Število zapiskov</th>
+                        <th>Akcija</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td><strong>{{ user.username }}</strong></td>
+                        <td>{{ user.note|length if user.note else 0 }}</td>
+                        <td>
+                            <a href="/admin/user/{{ user.username }}" class="btn btn-view">Preglej zapiske & vlogo</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

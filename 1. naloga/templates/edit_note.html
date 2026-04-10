@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urejanje - Moji Zapiski</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+        .navbar { background-color: white; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .nav-links a { text-decoration: none; color: #1877f2; font-weight: bold; }
+        
+        .editor-container { background: white; max-width: 800px; width: 100%; margin: 30px auto; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; flex-grow: 1; max-height: calc(100vh - 120px); box-sizing: border-box; }
+        
+        input.title-input { width: 100%; font-size: 24px; font-weight: bold; border: none; border-bottom: 2px solid #dddfe2; padding: 10px 0; margin-bottom: 20px; outline: none; background: transparent; }
+        input.title-input:focus { border-bottom-color: #1877f2; }
+        
+        textarea.content-input { width: 100%; flex-grow: 1; border: 1px solid #dddfe2; border-radius: 6px; padding: 15px; font-size: 16px; font-family: inherit; resize: none; outline: none; box-sizing: border-box; }
+        textarea.content-input:focus { border-color: #1877f2; }
+        
+        .actions { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-save { background-color: #42b72a; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-save:hover { background-color: #36a420; }
+        
+        .status-msg { color: #65676b; font-size: 14px; font-style: italic; opacity: 0; transition: opacity 0.3s; }
+        .status-msg.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="nav-links">
+            <a href="/dashboard">← Nazaj na nadzorno ploščo</a>
+        </div>
+        <div style="font-size: 14px; color: #65676b;">
+            {% if target_user %}
+                Urejate zapisek uporabnika: <b>{{ target_user }}</b>
+            {% else %}
+                Urejate svoj zapisek
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <input type="hidden" id="note-id" value="{{ id }}">
+        <input type="hidden" id="target-user" value="{{ target_user if target_user else '' }}">
+
+        <input type="text" id="note-title" class="title-input" placeholder="Naslov zapiska..." value="{{ note.title if note is mapping else '' }}">
+        
+        <textarea id="note-content" class="content-input" placeholder="Začnite tipkati vsebino tukaj...">{{ note.content if note is mapping else '' }}</textarea>
+        
+        <div class="actions">
+            <span class="status-msg" id="status-msg">Shranjeno!</span>
+            <button class="btn-save" onclick="saveNote()">Shrani zapisek</button>
+        </div>
+    </div>
+
+    <script>
+        function saveNote() {
+            let id = document.getElementById("note-id").value;
+            let title = document.getElementById("note-title").value;
+            let content = document.getElementById("note-content").value;
+            let targetUser = document.getElementById("target-user").value;
+
+            let formData = new FormData();
+            formData.append("id", id);
+            formData.append("title", title);
+            formData.append("content", content);
+            if (targetUser) {
+                formData.append("user", targetUser);
+            }
+
+            // Pošljemo podatke na Python funkcijo /saveNote
+            fetch("/saveNote", {
+                method: "POST",
+                body: formData
+            }).then(response => response.text())
+              .then(data => {
+                  if(data === "OK") {
+                      // Prikaži sporočilo "Shranjeno!"
+                      let msg = document.getElementById("status-msg");
+                      msg.classList.add("show");
+                      setTimeout(() => { msg.classList.remove("show"); }, 2000);
+                  } else {
+                      alert("Prišlo je do napake pri shranjevanju.");
+                  }
+              }).catch(error => {
+                  console.error("Error:", error);
+                  alert("Napaka pri povezavi s strežnikom.");
+              });
+        }
+    </script>
+</body>
+</html>
