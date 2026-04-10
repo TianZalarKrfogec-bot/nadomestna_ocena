@@ -5,24 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>(si)x - Dobrodošli</title>
     <style>
-        :root { --primary: #6366f1; --dark: #1e293b; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .hero { text-align: center; padding: 2rem; }
-        .logo { font-size: 4rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 1rem; color: var(--primary); }
-        .tagline { font-size: 1.2rem; color: #94a3b8; margin-bottom: 2.5rem; }
-        .btn { padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: 0.2s; display: inline-block; margin: 0 10px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #4f46e5; transform: translateY(-2px); }
-        .btn-outline { border: 2px solid #334155; color: white; }
-        .btn-outline:hover { background: #334155; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #6366f1; /* Indigo barva za (si)x logo */
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        p {
+            color: #64748b;
+            margin-bottom: 35px;
+            line-height: 1.5;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .btn-login {
+            background-color: #6366f1;
+            color: white;
+        }
+
+        .btn-login:hover {
+            background-color: #4f46e5;
+            transform: translateY(-1px);
+        }
+
+        .btn-register {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-register:hover {
+            background-color: #e2e8f0;
+        }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <div class="logo">(si)x</div>
-        <div class="tagline">Naslednja generacija vaše produktivnosti.</div>
-        <a href="/login" class="btn btn-primary">Prijava</a>
-        <a href="/register" class="btn btn-outline">Ustvari račun</a>
+
+    <div class="container">
+        <h1>(si)x</h1>
+        <p>Dobrodošli v (si)x!(kjer se šestka upgrada v sedemko)</p>
+        
+        <div class="btn-group">
+            <a href="{{ url_for('login') }}" class="btn btn-login">Prijava</a>
+            <a href="{{ url_for('register') }}" class="btn btn-register">Registracija</a>
+        </div>
     </div>
+
 </body>
 </html>

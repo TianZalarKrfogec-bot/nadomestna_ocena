@@ -2,29 +2,117 @@
 <html lang="sl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>(si)x - Prijava</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
-        h2 { margin: 0 0 1.5rem; color: #1e293b; font-weight: 700; }
-        input { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #4f46e5; }
-        .footer-links { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: #64748b; }
-        .footer-links a { color: #6366f1; text-decoration: none; font-weight: 500; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+        }
+        .container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            width: 100%; 
+            max-width: 380px; 
+            text-align: center; 
+        }
+        h2 { 
+            color: #1e293b; 
+            margin-bottom: 25px; 
+            font-weight: 700;
+        }
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 8px 0; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        
+        button:hover { background-color: #4f46e5; }
+
+        .error-box { 
+            background-color: #fee2e2; 
+            border: 1px solid #ef4444; 
+            color: #b91c1c; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            font-size: 14px;
+        }
+        
+        .footer { 
+            margin-top: 25px; 
+            border-top: 1px solid #e2e8f0; 
+            padding-top: 20px; 
+            font-size: 14px; 
+            color: #64748b;
+        }
+        .footer a { 
+            color: #6366f1; 
+            text-decoration: none; 
+            font-weight: 600; 
+        }
+        
+        .forgot-password-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .forgot-password-link:hover { color: #6366f1; text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="container">
         <h2>Vstop v (si)x</h2>
+
+        {% if error %}
+            <div class="error-box">{{ error }}</div>
+        {% endif %}
+
         <form action="/login" method="POST">
             <input type="text" name="username" placeholder="Uporabniško ime" required>
             <input type="password" name="password" placeholder="Geslo" required>
-            <button type="submit">Prijavi se</button>
+            
+            <button type="submit">Prijava</button>
+            
+            <a href="{{ url_for('forgot_password') }}" class="forgot-password-link">Ste pozabili geslo?</a>
         </form>
-        <div class="footer-links">
-            <a href="/forgot_password">Pozabljeno geslo?</a><br><br>
-            Še nimate računa? <a href="/register">Registracija</a>
+
+        <div class="footer">
+            Nimate računa? <a href="{{ url_for('register') }}">Ustvarite ga</a>
         </div>
     </div>
 </body>
