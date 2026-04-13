@@ -2,31 +2,111 @@
 <html lang="sl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>(si)x - Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; margin: 0; }
-        .nav { background: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
-        .logo-small { font-weight: 800; font-size: 1.5rem; color: #6366f1; text-decoration: none; }
-        .user-menu { display: flex; align-items: center; gap: 1rem; }
-        .main-content { max-width: 1200px; margin: 3rem auto; padding: 0 2rem; }
-        .welcome-card { background: white; padding: 3rem; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; }
-        .btn-logout { color: #ef4444; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; color: #1e293b; display: flex; flex-direction: column; height: 100vh; }
+        nav { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 10; }
+        nav .logo { font-size: 26px; font-weight: 800; color: #6366f1; text-decoration: none; letter-spacing: -1px; }
+        nav .links a { margin-left: 20px; text-decoration: none; color: #64748b; font-weight: 600; font-size: 15px; transition: color 0.2s; }
+        nav .links a:hover { color: #6366f1; }
+        nav .links a.active { color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 4px; }
+
+        .content { max-width: 650px; margin: 0 auto; padding: 30px 20px; width: 100%; box-sizing: border-box; }
+        
+        .create-banner { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
+        .create-banner p { margin: 0; font-weight: 600; color: #475569; }
+        .btn-create { background: #6366f1; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn-create:hover { background: #4f46e5; }
+
+        .post-card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        .post-header { font-weight: 700; color: #0f172a; margin-bottom: 10px; font-size: 1.1rem; }
+        .post-body { font-size: 16px; line-height: 1.6; color: #334155; margin-bottom: 15px; white-space: pre-wrap; }
+        .post-images { display: flex; gap: 10px; margin-bottom: 15px; }
+        .post-images img { border-radius: 8px; max-height: 200px; object-fit: cover; border: 1px solid #f1f5f9; }
+        
+        .post-actions { display: flex; gap: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .action-btn { text-decoration: none; color: #64748b; font-weight: 600; font-size: 15px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .action-btn:hover { color: #6366f1; }
+        .comment-btn { margin-left: auto; color: #6366f1; }
     </style>
 </head>
 <body>
-    <nav class="nav">
-        <a href="#" class="logo-small">(si)x</a>
-        <div class="user-menu">
-            <span>{{ uporabnik }}</span>
-            <a href="/logout" class="btn-logout">Odjava</a>
+    <nav>
+        <a href="{{ url_for('dashboard') }}" class="logo">(si)x</a>
+        <div class="links">
+            <a href="{{ url_for('dashboard') }}" class="active">Domov</a>
+            <a href="{{ url_for('profile') }}">Moj Profil</a>
+            <a href="{{ url_for('logout') }}" style="color:#ef4444;">Odjava</a>
         </div>
     </nav>
 
-    <main class="main-content">
-        <div class="welcome-card">
-            <h1 style="color: #1e293b;">Dobrodošli v (si)x feedu.</h1>
-            <p style="color: #64748b;">Tukaj boste našli najnovejše novice in posodobitve.</p>
+    <div class="content">
+        <div class="create-banner">
+            <p>Pozdravljen, {{ uporabnik }}!</p>
+            <a href="/newNote" class="btn-create">+ Nov zapisek</a>
         </div>
-    </main>
+
+        {% if posts %}
+            {% for post in posts %}
+            <div class="post-card">
+                <div class="post-header">@{{ post.username }}</div>
+                <div class="post-body">{{ post.content }}</div>
+                
+                {% if post.images %}
+                <div class="post-images">
+                    {% for img in post.images %}
+                        <img src="/uploads/{{ img }}">
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="post-actions">
+                    <a href="javascript:void(0)" class="action-btn" id="l-{{ post.id }}" onclick="like('{{ post.id }}')">
+                        👍 <span id="lc-{{ post.id }}">{{ post.like }}</span>
+                    </a>
+                    <a href="javascript:void(0)" class="action-btn" id="d-{{ post.id }}" onclick="dislike('{{ post.id }}')">
+                        👎 <span id="dc-{{ post.id }}">{{ post.dislike }}</span>
+                    </a>
+                    <a href="/comments/{{ post.id }}" class="action-btn comment-btn">
+                        💬 Komentiraj ({{ post.comment | length }})
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center; color:#94a3b8; margin-top:40px;">Trenutno ni nobenih objav.</p>
+        {% endif %}
+    </div>
+
+<script>
+    function like(id) {
+        $.ajax({
+            url: "/like",
+            method: "POST",
+            data: {id: id},
+            success: function (data) {
+                $("#lc-" + id).text(data.like);
+                $("#dc-" + id).text(data.dislike);
+                $("#l-" + id).css("color", data.likeActive ? "#10b981" : "");
+                $("#d-" + id).css("color", data.dislikeActive ? "#ef4444" : "");
+            }
+        });
+    }
+    function dislike(id) {
+        $.ajax({
+            url: "/dislike",
+            method: "POST",
+            data: {id: id},
+            success: function (data) {
+                $("#lc-" + id).text(data.like);
+                $("#dc-" + id).text(data.dislike);
+                $("#l-" + id).css("color", data.likeActive ? "#10b981" : "");
+                $("#d-" + id).css("color", data.dislikeActive ? "#ef4444" : "");
+            }
+        });
+    }
+</script>
 </body>
 </html>

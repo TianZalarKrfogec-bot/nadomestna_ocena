@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>(si)x - Urejanje</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; color: #1e293b; display: flex; flex-direction: column; height: 100vh; }
+        nav { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        nav .logo { font-size: 26px; font-weight: 800; color: #6366f1; text-decoration: none; letter-spacing: -1px; }
+        nav .links a { margin-left: 20px; text-decoration: none; color: #64748b; font-weight: 600; font-size: 15px; transition: color 0.2s; }
+        nav .links a:hover { color: #6366f1; }
+        
+        .content { max-width: 650px; margin: 40px auto; padding: 0 20px; width: 100%; box-sizing: border-box; }
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        h2 { margin-top: 0; color: #1e293b; }
+        
+        textarea { width: 100%; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 16px; resize: vertical; margin-bottom: 20px; }
+        textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        
+        .image-gallery { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+        .image-item { position: relative; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; padding-bottom: 10px; background: #f8fafc; text-align: center; }
+        .image-item img { display: block; width: 150px; height: 100px; object-fit: cover; margin-bottom: 10px; }
+        .image-item button { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        
+        .file-upload { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #cbd5e1; }
+        
+        .actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+        .btn { padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 15px; transition: 0.2s; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-secondary { background: #e2e8f0; color: #475569; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-danger { background: white; color: #ef4444; border: 1px solid #ef4444; margin-left: auto; }
+        .btn-danger:hover { background: #fef2f2; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('dashboard') }}" class="logo">(si)x</a>
+        <div class="links">
+            <a href="{{ url_for('dashboard') }}">Domov</a>
+            <a href="{{ url_for('profile') }}">Moj Profil</a>
+            <a href="{{ url_for('logout') }}" style="color:#ef4444;">Odjava</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="card">
+            <h2>Urejanje zapiska</h2>
+            <form id="noteForm">
+                <textarea id="note" rows="8" placeholder="O čem razmišljaš?">{{ note.content | default('') }}</textarea>
+                
+                {% if note.images %}
+                <div class="image-gallery">
+                    {% for img in note.images %}
+                    <div class="image-item">
+                        <img src="/uploads/{{ img }}" alt="Slika">
+                        <button onclick="removeImage('{{ img }}')" type="button">Odstrani</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="file-upload">
+                    <label style="display:block; font-weight:600; margin-bottom:10px; color:#475569;">Dodaj slike (največ 3 skupaj):</label>
+                    <input type="file" id="imageUpload" name="images" accept="image/*" multiple>
+                    <div id="imageCount" style="margin-top: 8px; font-size: 13px; color: #64748b;"></div>
+                </div>
+
+                <div class="actions">
+                    <button onclick="saveNote()" type="button" class="btn btn-primary">Shrani spremembe</button>
+                    <button onclick="back()" type="button" class="btn btn-secondary">Prekliči</button>
+                    <button onclick="deleteNote()" type="button" class="btn btn-danger">Izbriši zapisek</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+    const id = "{{ id }}";
+
+    document.getElementById("imageUpload").onchange = function() {
+        var count = this.files.length;
+        var existing = {{ note.images | default([]) | length }};
+        var total = count + existing;
+        
+        var msg = "Izbrano: " + count + " novih slik.";
+        if (total > 3) {
+            msg += " <span style='color:#ef4444; font-weight:bold;'>⚠️ Opozorilo: Shranjene bodo samo prve 3 slike!</span>";
+        }
+        document.getElementById("imageCount").innerHTML = msg;
+    };
+
+    function removeImage(filename) {
+        $.ajax({
+            url: "/removeImage",
+            method: "POST",
+            data: { id: id, filename: filename },
+            success: function () { location.reload(); },
+            error: function () { alert("Napaka pri brisanju slike!"); }
+        });
+    }
+
+    function saveNote() {
+        var noteText = document.getElementById("note").value;
+        var fileInput = document.getElementById("imageUpload");
+        var formData = new FormData();
+        
+        formData.append("content", noteText);
+        formData.append("id", id);
+        
+        for (var i = 0; i < fileInput.files.length; i++) {
+            formData.append("images", fileInput.files[i]);
+        }
+        
+        $.ajax({
+            url: "/saveNote",
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () { window.location.href = "/profile"; }
+        });
+    }
+
+    function back() { window.location.href = "/profile"; }
+
+    function deleteNote() {
+        if(confirm("Si prepričan, da želiš izbrisati ta zapisek?")) {
+            $.ajax({
+                url: "/deleteNote",
+                method: "POST",
+                data: { id: id },
+                success: function () { window.location.href = "/profile"; }
+            });
+        }
+    }
+</script>
+</body>
+</html>

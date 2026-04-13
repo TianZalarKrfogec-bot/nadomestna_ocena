@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>(si)x - Komentarji</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; color: #1e293b; display: flex; flex-direction: column; height: 100vh; }
+        nav { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        nav .logo { font-size: 26px; font-weight: 800; color: #6366f1; text-decoration: none; letter-spacing: -1px; }
+        nav .links a { margin-left: 20px; text-decoration: none; color: #64748b; font-weight: 600; font-size: 15px; transition: color 0.2s; }
+        nav .links a:hover { color: #6366f1; }
+
+        .content { max-width: 600px; margin: 40px auto; padding: 0 20px; width: 100%; box-sizing: border-box; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h2 { margin: 0; }
+        .btn-add { background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-add:hover { background: #4f46e5; }
+
+        .comment-list { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
+        .comment-item { padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
+        .comment-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .comment-author { font-weight: 700; color: #0f172a; font-size: 0.95rem; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .comment-text { margin: 0; color: #475569; line-height: 1.5; }
+        
+        .btn-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 13px; font-weight: 600; padding: 0; }
+        .btn-delete:hover { text-decoration: underline; }
+
+        /* Dinamični input stil */
+        .dynamic-textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; resize: vertical; }
+        .dynamic-btn { background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('dashboard') }}" class="logo">(si)x</a>
+        <div class="links">
+            <a href="{{ url_for('dashboard') }}">Nazaj na objave</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="header">
+            <h2>Komentarji</h2>
+            <button class="btn-add" onclick="newComment()">+ Dodaj komentar</button>
+        </div>
+
+        <div class="comment-list" id="commentWrapper">
+            {% if comments %}
+                {% for comment in comments %}
+                <div class="comment-item">
+                    <div class="comment-author">
+                        @{{ comment.username }}
+                        {% if comment.username == uporabnik %}
+                        <button class="btn-delete" onclick="deleteComment({{ loop.index0 }})">Odstrani</button>
+                        {% endif %}
+                    </div>
+                    <p class="comment-text">{{ comment.content }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p id="no-comments" style="text-align:center; color:#94a3b8; margin: 0;">Še ni komentarjev.</p>
+            {% endif %}
+        </div>
+    </div>
+
+<script>
+    function newComment() {
+        var wrapper = document.getElementById("commentWrapper");
+        
+        // Odstrani placeholder, če obstaja
+        var noComments = document.getElementById("no-comments");
+        if (noComments) noComments.remove();
+
+        var container = document.createElement("div");
+        container.className = "comment-item";
+        
+        var textarea = document.createElement("textarea");
+        textarea.className = "dynamic-textarea";
+        textarea.rows = 3;
+        textarea.placeholder = "Napiši svoj komentar...";
+
+        var btn = document.createElement("button");
+        btn.className = "dynamic-btn";
+        btn.innerHTML = "Objavi";
+
+        btn.onclick = function() {
+            var val = textarea.value.trim();
+            if (!val) return;
+            
+            btn.innerHTML = "Pošiljanje...";
+            btn.disabled = true;
+
+            $.ajax({
+                url: "/comments/{{ id }}",
+                method: "POST",
+                data: { content: val },
+                success: function() { location.reload(); },
+                error: function() { alert("Napaka pri shranjevanju!"); btn.innerHTML = "Objavi"; btn.disabled = false; }
+            });
+        };
+
+        container.appendChild(textarea);
+        container.appendChild(btn);
+        wrapper.insertBefore(container, wrapper.firstChild);
+    }
+
+    function deleteComment(index) {
+        if(confirm("Odstranim komentar?")) {
+            $.ajax({
+                url: "/comments/{{ id }}",
+                method: "POST",
+                data: { action: "delete", index: index },
+                success: function() { location.reload(); }
+            });
+        }
+    }
+</script>
+</body>
+</html>

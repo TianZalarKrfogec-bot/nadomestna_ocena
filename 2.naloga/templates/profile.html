@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>(si)x - Moj Profil</title>
+    <style>
+        /* OSNOVNI STIL - Usklađen s preostalimi stranmi 2. naloge */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; color: #1e293b; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* MODERNA NAVIGACIJA */
+        nav { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        nav .logo { font-size: 26px; font-weight: 800; color: #6366f1; text-decoration: none; letter-spacing: -1px; }
+        nav .links a { margin-left: 20px; text-decoration: none; color: #64748b; font-weight: 600; font-size: 15px; transition: color 0.2s; }
+        nav .links a:hover { color: #6366f1; }
+        nav .links a.active { color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 4px; }
+
+        /* VSEBINA - Indigo glava in kartice */
+        .content { max-width: 650px; margin: 0 auto; padding: 0 20px 40px 20px; width: 100%; box-sizing: border-box; }
+        
+        /* IZBOLJŠANA GLAVA PROFILA */
+        .profile-hero { background: #6366f1; color: white; padding: 60px 20px; border-radius: 0 0 16px 16px; margin-bottom: 30px; text-align: center; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.2); }
+        .profile-hero h1 { margin: 0; font-size: 3rem; font-weight: 800; letter-spacing: -1px; }
+        .profile-hero p { margin: 10px 0 0 0; color: rgba(255,255,255,0.8); font-size: 1.1rem; }
+
+        /* POST KARTICA - Minimalističen slog */
+        .post-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; transition: transform 0.2s, box-shadow 0.2s; }
+        .post-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
+        .post-body { font-size: 16px; line-height: 1.6; color: #334155; margin-bottom: 15px; }
+        
+        /* POST AKCIJE */
+        .post-actions { display: flex; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px; color: #64748b; font-size: 14px; font-weight: 600; }
+        .comment-link { text-decoration: none; color: #6366f1; margin-left: auto; font-size: 14px; font-weight: 600; transition: text-decoration 0.2s; }
+        .comment-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('dashboard') }}" class="logo">(si)x</a>
+        <div class="links">
+            <a href="{{ url_for('dashboard') }}">Domov</a>
+            <a href="{{ url_for('profile') }}" class="active">Moj Profil</a>
+            <a href="{{ url_for('logout') }}" style="color:#ef4444;">Odjava</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="profile-hero">
+            <h1>{{ uporabnik }}</h1>
+            <p>Tvoji objavljeni zapiski</p>
+        </div>
+
+        {% if not posts %}
+            <p style="text-align:center; color:#94a3b8; font-size:0.9rem; margin-top:40px;">Še nimaš nobene objave.</p>
+        {% endif %}
+
+        {% for post in posts %}
+        <div class="post-card">
+            <div class="post-body">{{ post.content }}</div>
+            <div class="post-actions">
+                <span>👍 {{ post.like }}</span>
+                <span>👎 {{ post.dislike }}</span>
+                <a href="/comments/{{ post.id }}" class="comment-link">Ogled komentarjev ({{ post.comment|length }})</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
