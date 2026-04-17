@@ -6,107 +6,161 @@
     <title>(si)x - Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; color: #1e293b; display: flex; flex-direction: column; height: 100vh; }
-        nav { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 10; }
-        nav .logo { font-size: 26px; font-weight: 800; color: #6366f1; text-decoration: none; letter-spacing: -1px; }
-        nav .links a { margin-left: 20px; text-decoration: none; color: #64748b; font-weight: 600; font-size: 15px; transition: color 0.2s; }
-        nav .links a:hover { color: #6366f1; }
-        nav .links a.active { color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 4px; }
-
-        .content { max-width: 650px; margin: 0 auto; padding: 30px 20px; width: 100%; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; margin: 0; color: #1e293b; }
+        nav { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .logo { font-size: 24px; font-weight: 800; color: #6366f1; text-decoration: none; }
+        .container { max-width: 600px; margin: 30px auto; padding: 0 20px; }
         
-        .create-banner { background: white; padding: 20px; border-radius: 12px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; }
-        .create-banner p { margin: 0; font-weight: 600; color: #475569; }
-        .btn-create { background: #6366f1; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        .btn-create:hover { background: #4f46e5; }
-
-        .post-card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; }
-        .post-header { font-weight: 700; color: #0f172a; margin-bottom: 10px; font-size: 1.1rem; }
-        .post-body { font-size: 16px; line-height: 1.6; color: #334155; margin-bottom: 15px; white-space: pre-wrap; }
-        .post-images { display: flex; gap: 10px; margin-bottom: 15px; }
-        .post-images img { border-radius: 8px; max-height: 200px; object-fit: cover; border: 1px solid #f1f5f9; }
+        /* Obrazec za novo objavo */
+        .new-post-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 2px solid #6366f1; }
+        textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; resize: none; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; }
         
-        .post-actions { display: flex; gap: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
-        .action-btn { text-decoration: none; color: #64748b; font-weight: 600; font-size: 15px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-        .action-btn:hover { color: #6366f1; }
-        .comment-btn { margin-left: auto; color: #6366f1; }
+        /* Seznam objav */
+        .post-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; position: relative; }
+        .post-header { font-weight: 700; color: #4f46e5; margin-bottom: 10px; }
+        .post-content { white-space: pre-wrap; margin-bottom: 15px; }
+        .post-images { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .post-images img { height: 120px; border-radius: 8px; object-fit: cover; border: 1px solid #f1f5f9; }
+        
+        /* Interakcije */
+        .actions { display: flex; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .action-link { text-decoration: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; }
+        
+        .btn-delete-post { position: absolute; top: 20px; right: 20px; color: #ef4444; background: none; border: none; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-submit { background: #6366f1; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
     <nav>
-        <a href="{{ url_for('dashboard') }}" class="logo">(si)x</a>
-        <div class="links">
-            <a href="{{ url_for('dashboard') }}" class="active">Domov</a>
-            <a href="{{ url_for('profile') }}">Moj Profil</a>
-            <a href="{{ url_for('logout') }}" style="color:#ef4444;">Odjava</a>
+        <a href="/dashboard" class="logo">(si)x</a>
+        <div>
+            <a href="/profile" style="margin-right: 15px; text-decoration: none; color: #64748b;">Moj Profil</a>
+            <a href="/logout" style="color: #ef4444; text-decoration: none;">Odjava</a>
         </div>
     </nav>
 
-    <div class="content">
-        <div class="create-banner">
-            <p>Pozdravljen, {{ uporabnik }}!</p>
-            <a href="/newNote" class="btn-create">+ Nov zapisek</a>
+    <div class="container">
+        <div class="new-post-card">
+            <h3 style="margin-top:0;">Nova objava</h3>
+            <form id="quickPostForm" enctype="multipart/form-data">
+                <textarea id="postContent" rows="3" placeholder="Kaj se dogaja?" required></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <input type="file" id="postImages" name="images" multiple accept="image/*" style="font-size: 12px;">
+                    <button type="button" onclick="submitPost()" class="btn-submit">Objavi</button>
+                </div>
+                <div id="imgLimitMsg" style="font-size: 11px; color: #64748b; margin-top: 5px;">Maksimalno 3 slike.</div>
+            </form>
         </div>
 
-        {% if posts %}
-            {% for post in posts %}
-            <div class="post-card">
-                <div class="post-header">@{{ post.username }}</div>
-                <div class="post-body">{{ post.content }}</div>
-                
-                {% if post.images %}
-                <div class="post-images">
-                    {% for img in post.images %}
-                        <img src="/uploads/{{ img }}">
-                    {% endfor %}
+        <h2>Objave skupnosti</h2>
+        <div id="postList">
+            {% if posts %}
+                {% for post in posts %}
+                <div class="post-card" id="post-{{ post.id }}">
+                    <div class="post-header">@{{ post.username }}</div>
+                    
+                    {# Gumb za izbris - viden le avtorju ali adminu #}
+                    {% if post.username == uporabnik or admin in [1, 2] %}
+                    <button class="btn-delete-post" onclick="deletePost('{{ post.id }}')">IZBRIŠI</button>
+                    {% endif %}
+
+                    <div class="post-content">{{ post.content }}</div>
+                                        
+                    {% if post.images %}
+                        <div style="display: flex; gap: 10px; margin: 10px 0;">
+                            {% for img in post.images %}
+                                <img src="{{ url_for('uploaded_file', filename=img) }}" alt="Slika" 
+                                    style="height: 150px; border-radius: 8px; object-fit: cover; border: 1px solid #ddd;">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="actions">
+                        <a onclick="like('{{ post.id }}')" class="action-link" id="l-{{ post.id }}">
+                            👍 <span id="lc-{{ post.id }}">{{ post.like }}</span>
+                        </a>
+                        <a onclick="dislike('{{ post.id }}')" class="action-link" id="d-{{ post.id }}">
+                            👎 <span id="dc-{{ post.id }}">{{ post.dislike }}</span>
+                        </a>
+                        <a href="/comments/{{ post.id }}" class="action-link">
+                            💬 {{ post.comment | length if post.comment else 0 }} komentarjev
+                        </a>
+                    </div>
                 </div>
-                {% endif %}
-                
-                <div class="post-actions">
-                    <a href="javascript:void(0)" class="action-btn" id="l-{{ post.id }}" onclick="like('{{ post.id }}')">
-                        👍 <span id="lc-{{ post.id }}">{{ post.like }}</span>
-                    </a>
-                    <a href="javascript:void(0)" class="action-btn" id="d-{{ post.id }}" onclick="dislike('{{ post.id }}')">
-                        👎 <span id="dc-{{ post.id }}">{{ post.dislike }}</span>
-                    </a>
-                    <a href="/comments/{{ post.id }}" class="action-btn comment-btn">
-                        💬 Komentiraj ({{ post.comment | length }})
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p style="text-align:center; color:#94a3b8; margin-top:40px;">Trenutno ni nobenih objav.</p>
-        {% endif %}
+                {% endfor %}
+            {% else %}
+                <p>Ni še objav. Bodi prvi!</p>
+            {% endif %}
+        </div>
     </div>
 
-<script>
-    function like(id) {
+    <script>
+        // Oddaja nove objave s slikami
+    function submitPost() {
+        let formData = new FormData();
+        
+        // TUKAJ JE POPRAVEK: Dodamo prazen ID, da Flask ve, da gre za novo objavo
+        formData.append("id", ""); 
+        formData.append("content", $("#postContent").val());
+        
+        let files = document.getElementById("postImages").files;
+        if (files.length > 3) {
+            alert("Izbereš lahko največ 3 slike!");
+            return;
+        }
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append("images", files[i]);
+        }
+
         $.ajax({
-            url: "/like",
-            method: "POST",
-            data: {id: id},
-            success: function (data) {
-                $("#lc-" + id).text(data.like);
-                $("#dc-" + id).text(data.dislike);
-                $("#l-" + id).css("color", data.likeActive ? "#10b981" : "");
-                $("#d-" + id).css("color", data.dislikeActive ? "#ef4444" : "");
+            url: "/saveNote", 
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function() { 
+                location.reload(); 
+            },
+            error: function(xhr, status, error) { 
+                // Za lažje iskanje napak v prihodnje, izpišimo napako v konzolo
+                console.error("Napaka:", xhr.responseText);
+                alert("Napaka pri objavi! Preveri terminal, kje se ustavi Python koda."); 
             }
         });
     }
-    function dislike(id) {
-        $.ajax({
-            url: "/dislike",
-            method: "POST",
-            data: {id: id},
-            success: function (data) {
+            // Izbris celotne objave
+            function deletePost(id) {
+                if (confirm("Izbrišem to objavo?")) {
+                    // Uporabimo jQuery POST, ker Python pričakuje request.form.get("id")
+                    $.ajax({
+                        url: "/deleteNote",
+                        type: "POST",
+                        data: { id: id }, // To pošlje "id" v Python
+                        success: function() {
+                            $("#post-" + id).fadeOut(); // Vizualno skrije kartico
+                        },
+                        error: function() {
+                            alert("Napaka pri brisanju na strežniku.");
+                        }
+                    });
+                }
+            }
+
+        // Like/Dislike logika iz tvojih slik
+        function like(id) {
+            $.post("/like", { id: id }, function(data) {
                 $("#lc-" + id).text(data.like);
                 $("#dc-" + id).text(data.dislike);
-                $("#l-" + id).css("color", data.likeActive ? "#10b981" : "");
-                $("#d-" + id).css("color", data.dislikeActive ? "#ef4444" : "");
-            }
-        });
-    }
-</script>
+            });
+        }
+
+        function dislike(id) {
+            $.post("/dislike", { id: id }, function(data) {
+                $("#lc-" + id).text(data.like);
+                $("#dc-" + id).text(data.dislike);
+            });
+        }
+    </script>
 </body>
 </html>

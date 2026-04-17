@@ -3,9 +3,26 @@ from tinydb import TinyDB, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 import threading
 import uuid
+import os
+import datetime
 
 app = Flask(__name__)
 app.secret_key = "zeloskrivenkljuc_six"
+
+app.config['UPLOAD_FOLDER'] = 'uploads2'
+
+from flask import send_from_directory
+@app.route('/uploads2/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# 2. ŠELE NATO lahko preverjaš, če mapa obstaja
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
+
+# Funkcija za preverjanje dovoljenih končnic (dodaj, če nimaš)
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 # Uporabimo db2.json za 2. nalogo, da ne mešamo podatkov
 db = TinyDB("db2.json")
@@ -125,6 +142,8 @@ def get_all_users():
     return users.all()
 
 # 1. DASHBOARD - Prikaz vseh zapiskov vseh uporabnikov
+import datetime
+
 @app.route("/dashboard")
 def dashboard():
     if "user" not in session:
@@ -134,10 +153,10 @@ def dashboard():
     posts = []
     
     for user in all_users:
-        # Poberemo vse zapiske posameznega uporabnika
+        uname = user.get("username", "Neznanec")
         for note_id, note in user.get("note", {}).items():
             posts.append({
-                "username": user["username"],
+                "username": uname,
                 "id": note_id,
                 "content": note.get("content", ""),
                 "images": note.get("images", []),
@@ -145,12 +164,15 @@ def dashboard():
                 "dislike": note.get("dislike", 0),
                 "comment": note.get("comment", []),
                 "like_users": note.get("like_users", []),
-                "dislike_users": note.get("dislike_users", [])
+                "dislike_users": note.get("dislike_users", []),
+                # Če objava nima timestampa, ji damo zelo star datum
+                "timestamp": note.get("timestamp", "1970-01-01T00:00:00")
             })
     
-    # Razvrstimo zapiske (npr. najnovejši na vrhu - opcijsko)
-    return render_template("dashboard.html", uporabnik=session["user"], posts=posts)
-
+    # REŠITEV: Uporabimo sorted() s parametrom reverse=True
+    # To bo zagotovilo, da bodo največji nizi (novejši datumi) na začetku seznama
+    sorted_posts = sorted(posts, key=lambda x: x['timestamp'], reverse=True)
+    return render_template("dashboard.html", uporabnik=session["user"], posts=sorted_posts)
 # 2. LIKE - Všečkanje zapiska (AJAX)
 @app.route("/like", methods=["POST"])
 def like():
@@ -347,64 +369,89 @@ def new_note():
 
 # 3. SAVE NOTE - Shranjevanje besedila in slik (AJAX)
 @app.route("/saveNote", methods=["POST"])
+
+
+@app.route("/saveNote", methods=["POST"])
 def save_note():
     if "user" not in session:
         return "Unauthorized", 401
 
     content = request.form.get("content", "")
-    note_id = request.form.get("id")
+    note_id = request.form.get("id", "")
 
     with db_lock:
         user = users.get(User.username == session["user"])
-        if user:
-            notes = user.get("note", {})
-            if note_id in notes:
-                # Posodobimo besedilo
-                notes[note_id]["content"] = content
-                
-                # Obdelava slik
-                files = request.files.getlist("images")
-                current_images = notes[note_id].get("images", [])
-                
-                for file in files:
-                    if file and file.filename != "" and allowed_file(file.filename):
-                        # Generiramo unikatno ime datoteke, da ne pride do prekrivanja
-                        ext = file.filename.rsplit(".", 1)[1].lower()
-                        unique_filename = f"{uuid.uuid4().hex}.{ext}"
-                        
-                        # Shranimo v mapo, ki je nastavljena v app.config["UPLOAD_FOLDER"]
-                        file.save(os.path.join(app.config["UPLOAD_FOLDER"], unique_filename))
-                        current_images.append(unique_filename)
-                
-                # Omejimo na maksimalno 3 slike na zapisek
-                notes[note_id]["images"] = current_images[:3]
-                
-                users.update({"note": notes}, User.username == session["user"])
-                return "OK"
-                
-    return "Napaka pri shranjevanju", 404
+        if not user:
+            return "Uporabnik ni najden", 404
+            
+        notes = user.get("note", {})
 
-# 4. DELETE NOTE - Brisanje zapiska (AJAX)
+        # 1. Če ni ID-ja, ustvari novo objavo s časovnim žigom
+        if not note_id or note_id == "":
+            note_id = str(uuid.uuid4())
+            notes[note_id] = {
+                "id": note_id,
+                "username": session["user"],
+                "content": content,
+                "images": [],
+                "timestamp": datetime.datetime.now().isoformat(),
+                "like": 0,
+                "dislike": 0, 
+                "comment": [],
+                "like_users": [], 
+                "dislike_users": []
+            }
+
+        # 2. Posodobi vsebino in shrani slike
+        if note_id in notes:
+            notes[note_id]["content"] = content
+            
+            # Shranjevanje slik v mapo uploads2
+            if 'images' in request.files:
+                uploaded_files = request.files.getlist("images")
+                current_imgs = notes[note_id].get("images", [])
+                
+                for file in uploaded_files:
+                    if file and file.filename != "" and allowed_file(file.filename):
+                        if len(current_imgs) < 3: # Omejitev na 3 slike
+                            ext = file.filename.rsplit(".", 1)[1].lower()
+                            fn = f"{uuid.uuid4().hex}.{ext}"
+                            
+                            # Shranimo v uploads2
+                            file.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
+                            current_imgs.append(fn)
+                
+                notes[note_id]["images"] = current_imgs
+
+            # 3. Shranimo posodobljene zapiske nazaj k uporabniku
+            users.update({"note": notes}, User.username == session["user"])
+            return "OK", 200
+
+    return "Napaka", 400
 @app.route("/deleteNote", methods=["POST"])
 def delete_note():
     if "user" not in session:
         return "Unauthorized", 401
-
+    
     note_id = request.form.get("id")
-
+    
     with db_lock:
         user = users.get(User.username == session["user"])
         if user:
             notes = user.get("note", {})
             if note_id in notes:
-                # Odstranimo zapisek iz slovarja
+                # Najprej fizično izbrišemo slike iz mape
+                for img in notes[note_id].get("images", []):
+                    img_path = os.path.join(app.config['UPLOAD_FOLDER'], img)
+                    if os.path.exists(img_path):
+                        os.remove(img_path)
+                
+                # Odstranimo iz baze
                 del notes[note_id]
                 users.update({"note": notes}, User.username == session["user"])
-                return "OK"
-
-    return "Napaka pri brisanju", 404
-
-import os
+                return "OK", 200
+                
+    return "Ni mogoče izbrisati", 400
 
 @app.route("/removeImage", methods=["POST"])
 def remove_image():

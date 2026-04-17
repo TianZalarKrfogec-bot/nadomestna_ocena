@@ -7,113 +7,107 @@
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f8fafc; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             height: 100vh; 
             margin: 0; 
-            background-color: #f8fafc; 
             color: #1e293b;
         }
-        .container { 
+        .login-card { 
             background: white; 
             padding: 40px; 
             border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); 
             width: 100%; 
-            max-width: 380px; 
+            max-width: 400px; 
+            border: 1px solid #e2e8f0;
+        }
+        .logo { 
+            font-size: 32px; 
+            font-weight: 800; 
+            color: #6366f1; 
             text-align: center; 
+            margin-bottom: 10px; 
+            text-decoration: none;
+            display: block;
         }
-        h2 { 
-            color: #1e293b; 
-            margin-bottom: 25px; 
-            font-weight: 700;
-        }
+        h2 { text-align: center; margin-bottom: 30px; font-weight: 600; color: #475569; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
         input { 
             width: 100%; 
-            padding: 14px; 
-            margin: 8px 0; 
-            border: 1px solid #e2e8f0; 
+            padding: 12px; 
+            border: 1px solid #cbd5e1; 
             border-radius: 8px; 
             box-sizing: border-box; 
-            font-size: 16px; 
+            font-size: 16px;
             transition: border-color 0.2s;
         }
-        input:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
+        input:focus { outline: none; border-color: #6366f1; border-width: 2px; }
         
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #6366f1;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 17px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: background 0.2s;
-        }
-        
-        button:hover { background-color: #4f46e5; }
-
-        .error-box { 
-            background-color: #fee2e2; 
-            border: 1px solid #ef4444; 
-            color: #b91c1c; 
-            padding: 12px; 
+        .btn-login { 
+            width: 100%; 
+            padding: 14px; 
+            background-color: #6366f1; 
+            color: white; 
+            border: none; 
             border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        .btn-login:hover { background-color: #4f46e5; }
+        
+        .error-msg { 
+            background: #fee2e2; 
+            color: #ef4444; 
+            padding: 10px; 
+            border-radius: 6px; 
             margin-bottom: 20px; 
-            font-size: 14px;
-        }
-        
-        .footer { 
-            margin-top: 25px; 
-            border-top: 1px solid #e2e8f0; 
-            padding-top: 20px; 
             font-size: 14px; 
-            color: #64748b;
+            text-align: center; 
         }
-        .footer a { 
-            color: #6366f1; 
-            text-decoration: none; 
-            font-weight: 600; 
-        }
-        
-        .forgot-password-link {
-            display: inline-block;
-            margin-top: 15px;
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 13px;
-        }
-        .forgot-password-link:hover { color: #6366f1; text-decoration: underline; }
+        .footer-links { text-align: center; margin-top: 25px; font-size: 14px; color: #64748b; }
+        .footer-links a { color: #6366f1; text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Vstop v (si)x</h2>
 
-        {% if error %}
-            <div class="error-box">{{ error }}</div>
-        {% endif %}
+    <div class="login-card">
+        <a href="/" class="logo">(si)x</a>
+        <h2>Dobrodošel nazaj</h2>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="error-msg">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
         <form action="/login" method="POST">
-            <input type="text" name="username" placeholder="Uporabniško ime" required>
-            <input type="password" name="password" placeholder="Geslo" required>
+            <div class="form-group">
+                <label for="username">Uporabniško ime</label>
+                <input type="text" id="username" name="username" placeholder="Vnesi ime..." required>
+            </div>
             
-            <button type="submit">Prijava</button>
-            
-            <a href="{{ url_for('forgot_password') }}" class="forgot-password-link">Ste pozabili geslo?</a>
+            <div class="form-group">
+                <label for="password">Geslo</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-login">Prijavi se</button>
         </form>
 
-        <div class="footer">
-            Nimate računa? <a href="{{ url_for('register') }}">Ustvarite ga</a>
+        <div class="footer-links">
+            Še nimaš računa? <a href="/register">Registriraj se</a>
         </div>
     </div>
+
 </body>
 </html>

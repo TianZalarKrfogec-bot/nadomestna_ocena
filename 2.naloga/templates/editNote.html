@@ -20,9 +20,10 @@
         textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
         
         .image-gallery { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
-        .image-item { position: relative; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; padding-bottom: 10px; background: #f8fafc; text-align: center; }
-        .image-item img { display: block; width: 150px; height: 100px; object-fit: cover; margin-bottom: 10px; }
-        .image-item button { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .image-item { position: relative; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #f8fafc; width: calc(33.33% - 10px); min-width: 140px; }
+        .image-item img { display: block; width: 100%; height: 110px; object-fit: cover; }
+        .image-item .remove-btn { background: #ef4444; color: white; border: none; padding: 6px; width: 100%; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .image-item .remove-btn:hover { background: #dc2626; }
         
         .file-upload { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #cbd5e1; }
         
@@ -52,25 +53,28 @@
             <form id="noteForm">
                 <textarea id="note" rows="8" placeholder="O čem razmišljaš?">{{ note.content | default('') }}</textarea>
                 
-                {% if note.images %}
-                <div class="image-gallery">
-                    {% for img in note.images %}
-                    <div class="image-item">
-                        <img src="/uploads/{{ img }}" alt="Slika">
-                        <button onclick="removeImage('{{ img }}')" type="button">Odstrani</button>
+                <div id="galleryContainer">
+                    {% if note.images %}
+                    <p style="font-size: 14px; font-weight: 600; color: #64748b; margin-bottom: 10px;">Trenutne slike:</p>
+                    <div class="image-gallery">
+                        {% for img in note.images %}
+                        <div class="image-item" id="img-{{ loop.index }}">
+                            <img src="/uploads/{{ img }}" alt="Slika">
+                            <button onclick="removeImage('{{ img }}', 'img-{{ loop.index }}')" type="button" class="remove-btn">Odstrani</button>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                    {% endif %}
                 </div>
-                {% endif %}
 
                 <div class="file-upload">
-                    <label style="display:block; font-weight:600; margin-bottom:10px; color:#475569;">Dodaj slike (največ 3 skupaj):</label>
+                    <label style="display:block; font-weight:600; margin-bottom:10px; color:#475569;">Dodaj nove slike (največ 3 skupaj):</label>
                     <input type="file" id="imageUpload" name="images" accept="image/*" multiple>
                     <div id="imageCount" style="margin-top: 8px; font-size: 13px; color: #64748b;"></div>
                 </div>
 
                 <div class="actions">
-                    <button onclick="saveNote()" type="button" class="btn btn-primary">Shrani spremembe</button>
+                    <button onclick="saveNote()" type="button" id="saveBtn" class="btn btn-primary">Shrani spremembe</button>
                     <button onclick="back()" type="button" class="btn btn-secondary">Prekliči</button>
                     <button onclick="deleteNote()" type="button" class="btn btn-danger">Izbriši zapisek</button>
                 </div>
@@ -79,8 +83,10 @@
     </div>
 
 <script>
-    const id = "{{ id }}";
+    // Uporabimo ID neposredno iz objekta note
+    const noteId = "{{ note.id }}";
 
+    // Posodobitev števca slik ob izbiri
     document.getElementById("imageUpload").onchange = function() {
         var count = this.files.length;
         var existing = {{ note.images | default([]) | length }};
@@ -88,29 +94,45 @@
         
         var msg = "Izbrano: " + count + " novih slik.";
         if (total > 3) {
-            msg += " <span style='color:#ef4444; font-weight:bold;'>⚠️ Opozorilo: Shranjene bodo samo prve 3 slike!</span>";
+            msg += " <br><span style='color:#ef4444; font-weight:bold;'>⚠️ Opozorilo: Shranjene bodo samo prve " + (3 - existing) + " nove slike!</span>";
         }
         document.getElementById("imageCount").innerHTML = msg;
     };
 
-    function removeImage(filename) {
+    function removeImage(filename, elementId) {
+        if (!confirm("Izbrišem to sliko?")) return;
+
         $.ajax({
             url: "/removeImage",
             method: "POST",
-            data: { id: id, filename: filename },
-            success: function () { location.reload(); },
+            data: { id: noteId, filename: filename },
+            success: function () { 
+                // Namesto reload-a samo skrijemo element za boljši UX
+                $("#" + elementId).fadeOut(300, function() { 
+                    $(this).remove(); 
+                    // Če ni več slik, odstranimo galerijo
+                    if ($(".image-item").length === 0) {
+                        $("#galleryContainer").html("");
+                    }
+                });
+            },
             error: function () { alert("Napaka pri brisanju slike!"); }
         });
     }
 
     function saveNote() {
+        const saveBtn = document.getElementById("saveBtn");
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Shranjevanje...";
+
         var noteText = document.getElementById("note").value;
         var fileInput = document.getElementById("imageUpload");
         var formData = new FormData();
         
         formData.append("content", noteText);
-        formData.append("id", id);
+        formData.append("id", noteId);
         
+        // Pomembno: ključ mora biti "images", da ga Flask prepozna kot seznam
         for (var i = 0; i < fileInput.files.length; i++) {
             formData.append("images", fileInput.files[i]);
         }
@@ -121,19 +143,27 @@
             data: formData,
             processData: false,
             contentType: false,
-            success: function () { window.location.href = "/profile"; }
+            success: function () { 
+                window.location.href = "/profile"; 
+            },
+            error: function() {
+                alert("Napaka pri shranjevanju!");
+                saveBtn.disabled = false;
+                saveBtn.innerText = "Shrani spremembe";
+            }
         });
     }
 
     function back() { window.location.href = "/profile"; }
 
     function deleteNote() {
-        if(confirm("Si prepričan, da želiš izbrisati ta zapisek?")) {
+        if(confirm("Si prepričan, da želiš popolnoma izbrisati ta zapisek?")) {
             $.ajax({
                 url: "/deleteNote",
                 method: "POST",
-                data: { id: id },
-                success: function () { window.location.href = "/profile"; }
+                data: { id: noteId },
+                success: function () { window.location.href = "/profile"; },
+                error: function() { alert("Napaka pri brisanju zapiska!"); }
             });
         }
     }
