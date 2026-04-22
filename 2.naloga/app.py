@@ -295,32 +295,42 @@ def comments(id):
 def profile():
     if "user" not in session:
         return redirect(url_for("login"))
-    
+
+    # 1. Pridobimo uporabnika iz baze
     user = users.get(User.username == session["user"])
     if not user:
-        return redirect(url_for("login"))
-        
-    posts = []
-    for note_id, note in user.get("note", {}).items():
-        posts.append({
-            "username": user["username"],
+        return "Uporabnik ni najden", 404
+
+    # 2. Pripravimo seznam objav
+    user_notes = []
+    # Dobimo slovar zapiskov (če ga ni, vrnemo {})
+    all_notes = user.get("note", {})
+
+    for note_id, note in all_notes.items():
+        user_notes.append({
             "id": note_id,
+            "username": user["username"],
             "content": note.get("content", ""),
             "images": note.get("images", []),
+            "timestamp": note.get("timestamp", "2000-01-01T00:00:00"), # Default čas, če ga ni
             "like": note.get("like", 0),
             "dislike": note.get("dislike", 0),
             "comment": note.get("comment", [])
         })
-        
-    return render_template("profile.html", uporabnik=session["user"], posts=posts)
 
+    # 3. ALGORITEM: Razvrstimo po času (novejši zgoraj)
+    # x['timestamp'] bo primerjal nize tipa "2024-03-20T12:00:00"
+    user_notes.sort(key=lambda x: x['timestamp'], reverse=True)
+
+    # 4. Pošljemo v profile.html
+    return render_template("profile.html", uporabnik=session["user"], notes=user_notes)
 # Pomožna funkcija za preverjanje dovoljenih končnic slik
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # 1. EDIT NOTE - Priprava podatkov za urejanje
-@app.route("/dashboard/<id>")
+@app.route("/edit/<id>")
 def edit_note(id):
     if "user" not in session:
         return redirect(url_for("login"))
@@ -368,8 +378,6 @@ def new_note():
     return redirect(url_for('edit_note', id=note_id))
 
 # 3. SAVE NOTE - Shranjevanje besedila in slik (AJAX)
-@app.route("/saveNote", methods=["POST"])
-
 
 @app.route("/saveNote", methods=["POST"])
 def save_note():

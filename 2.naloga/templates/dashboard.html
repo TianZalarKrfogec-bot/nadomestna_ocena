@@ -26,7 +26,11 @@
         .actions { display: flex; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
         .action-link { text-decoration: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; }
         
-        .btn-delete-post { position: absolute; top: 20px; right: 20px; color: #ef4444; background: none; border: none; font-weight: 600; cursor: pointer; font-size: 12px; }
+        /* Kontrole za avtorja (Edit/Delete) */
+        .post-controls { position: absolute; top: 20px; right: 20px; display: flex; gap: 15px; align-items: center; }
+        .btn-edit-post { color: #6366f1; text-decoration: none; font-weight: 600; font-size: 12px; }
+        .btn-delete-post { color: #ef4444; background: none; border: none; font-weight: 600; cursor: pointer; font-size: 12px; padding: 0; }
+        
         .btn-submit { background: #6366f1; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
@@ -59,9 +63,12 @@
                 <div class="post-card" id="post-{{ post.id }}">
                     <div class="post-header">@{{ post.username }}</div>
                     
-                    {# Gumb za izbris - viden le avtorju ali adminu #}
+                    {# Kontrole - vidne le avtorju ali adminu #}
                     {% if post.username == uporabnik or admin in [1, 2] %}
-                    <button class="btn-delete-post" onclick="deletePost('{{ post.id }}')">IZBRIŠI</button>
+                    <div class="post-controls">
+                        <a href="/edit/{{ post.id }}" class="btn-edit-post">UREDI</a>
+                        <button class="btn-delete-post" onclick="deletePost('{{ post.id }}')">IZBRIŠI</button>
+                    </div>
                     {% endif %}
 
                     <div class="post-content">{{ post.content }}</div>
@@ -95,11 +102,8 @@
     </div>
 
     <script>
-        // Oddaja nove objave s slikami
     function submitPost() {
         let formData = new FormData();
-        
-        // TUKAJ JE POPRAVEK: Dodamo prazen ID, da Flask ve, da gre za novo objavo
         formData.append("id", ""); 
         formData.append("content", $("#postContent").val());
         
@@ -122,45 +126,41 @@
             success: function() { 
                 location.reload(); 
             },
-            error: function(xhr, status, error) { 
-                // Za lažje iskanje napak v prihodnje, izpišimo napako v konzolo
-                console.error("Napaka:", xhr.responseText);
-                alert("Napaka pri objavi! Preveri terminal, kje se ustavi Python koda."); 
+            error: function(xhr) { 
+                alert("Napaka pri objavi!"); 
             }
         });
     }
-            // Izbris celotne objave
-            function deletePost(id) {
-                if (confirm("Izbrišem to objavo?")) {
-                    // Uporabimo jQuery POST, ker Python pričakuje request.form.get("id")
-                    $.ajax({
-                        url: "/deleteNote",
-                        type: "POST",
-                        data: { id: id }, // To pošlje "id" v Python
-                        success: function() {
-                            $("#post-" + id).fadeOut(); // Vizualno skrije kartico
-                        },
-                        error: function() {
-                            alert("Napaka pri brisanju na strežniku.");
-                        }
-                    });
+
+    function deletePost(id) {
+        if (confirm("Izbrišem to objavo?")) {
+            $.ajax({
+                url: "/deleteNote",
+                type: "POST",
+                data: { id: id },
+                success: function() {
+                    $("#post-" + id).fadeOut();
+                },
+                error: function() {
+                    alert("Napaka pri brisanju.");
                 }
-            }
-
-        // Like/Dislike logika iz tvojih slik
-        function like(id) {
-            $.post("/like", { id: id }, function(data) {
-                $("#lc-" + id).text(data.like);
-                $("#dc-" + id).text(data.dislike);
             });
         }
+    }
 
-        function dislike(id) {
-            $.post("/dislike", { id: id }, function(data) {
-                $("#lc-" + id).text(data.like);
-                $("#dc-" + id).text(data.dislike);
-            });
-        }
+    function like(id) {
+        $.post("/like", { id: id }, function(data) {
+            $("#lc-" + id).text(data.like);
+            $("#dc-" + id).text(data.dislike);
+        });
+    }
+
+    function dislike(id) {
+        $.post("/dislike", { id: id }, function(data) {
+            $("#lc-" + id).text(data.like);
+            $("#dc-" + id).text(data.dislike);
+        });
+    }
     </script>
 </body>
 </html>
