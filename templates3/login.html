@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel">
+    <h2>Prijava</h2>
+    
+    {% if error %}
+        <div class="{% if error_color == 'success' %}success-msg{% else %}error-msg{% endif %}">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="/login">
+        <div class="form-group">
+            <label>Uporabniško ime</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="form-group">
+            <label>Geslo</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn">Vstopi</button>
+    </form>
+    
+    <a href="/forgot-password" class="link-text">Pozabljeno geslo?</a>
+    <a href="/register" class="link-text" style="margin-top: 0.5rem; color: #94a3b8;">Še nimaš računa? Registriraj se.</a>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel">
+    <h2>Ustvari račun</h2>
+    
+    {% if error %}
+        <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/register">
+        <div class="form-group">
+            <label>Uporabniško ime</label>
+            <input type="text" name="username" required>
+        </div>
+        <div class="form-group">
+            <label>Geslo</label>
+            <input type="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label>Varnostno vprašanje (za obnovo gesla)</label>
+            <select name="security_question" required>
+                <option value="ime_ljubljencka">Ime prvega hišnega ljubljenčka?</option>
+                <option value="mesto_rojstva">Mesto tvojega rojstva?</option>
+                <option value="najljubsi_film">Tvoj najljubši film?</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Odgovor</label>
+            <input type="text" name="security_answer" required>
+        </div>
+        <button type="submit" class="btn">Registracija</button>
+    </form>
+    
+    <a href="/login" class="link-text">Že imaš račun? Prijavi se.</a>
+</div>
+{% endblock %}
