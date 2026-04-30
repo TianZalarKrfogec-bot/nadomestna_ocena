@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import threading
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = "zeloskrivenkljuc"
 
 db = TinyDB("db.json")

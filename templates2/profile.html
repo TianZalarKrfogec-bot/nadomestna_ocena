@@ -16,7 +16,18 @@
     </style>
 </head>
 <body>
+    <div style="margin-bottom: 20px;">
+        <a href="/dashboard" style="padding: 8px 15px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
+            ← Nazaj na Dashboard
+        </a>
+    </div>
 
+    <h2>Profil uporabnika: {{ target_username if target_username else uporabnik }}</h2>
+
+    <!-- Če gledamo tuj profil, verjetno ne želimo videti gumba "Novo" ali "Uredi" -->
+    {% if not is_external %}
+        <a href="/newNote">Nova objava</a>
+    {% endif %}
     <div class="header-profile">
         <h1>{{ uporabnik }}</h1>
         <p>Tvoji objavljeni zapiski</p>

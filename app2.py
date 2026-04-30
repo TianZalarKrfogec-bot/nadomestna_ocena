@@ -6,7 +6,9 @@ import uuid
 import os
 import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            template_folder='templates2', 
+            static_folder='static2')
 app.secret_key = "zeloskrivenkljuc_six"
 
 app.config['UPLOAD_FOLDER'] = 'uploads2'
@@ -493,6 +495,43 @@ def remove_image():
                 return "OK"
 
     return "Slika ne obstaja", 404
+
+@app.route("/profile/<username>")
+def view_external_profile(username):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    # Poiščemo specifičnega uporabnika
+    user = users.get(Query().username == username)
+    if not user:
+        return "Uporabnik ni najden", 404
+
+    # Pripravimo njegove zapiske
+    user_notes = []
+    all_notes = user.get("note", {})
+
+    for note_id, note in all_notes.items():
+        user_notes.append({
+            "id": note_id,
+            "username": username,
+            "content": note.get("content", ""),
+            "images": note.get("images", []),
+            "timestamp": note.get("timestamp", "2000-01-01T00:00:00"),
+            "like": note.get("like", 0),
+            "dislike": note.get("dislike", 0),
+            "comment": note.get("comment", [])
+        })
+
+    # Razvrstimo po času
+    user_notes.sort(key=lambda x: x['timestamp'], reverse=True)
+
+    # Uporabimo lahko isti template kot za lasten profil, 
+    # le da dodamo zastavico 'is_external', da vemo, kdaj skriti gumb "Uredi"
+    return render_template("profile.html", 
+                           uporabnik=session["user"], 
+                           target_username=username, 
+                           notes=user_notes, 
+                           is_external=True)
 
 if __name__ == "__main__":
     app.run(debug=True)

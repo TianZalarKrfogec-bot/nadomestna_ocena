@@ -26,18 +26,25 @@
     <div class="container">
         <div class="card">
             <h3>Seznam zapiskov</h3>
-            {% if notes %}
+<!-- V tvoji datoteki admin_user_notes.html popravi ta del: -->
+
+        {% if notes %}
+            <h2>Zapiski:</h2>
+            <ul>
                 {% for id, note in notes.items() %}
-                <div class="note-item">
-                    <a href="/dashboard/{{ id }}?user={{ target_user }}" class="note-link">
-                        {{ note.title if note.title else "Brez naslova" }}
-                    </a>
-                    <span class="status-badge">Odpri za urejanje</span>
-                </div>
+                    <li>
+                        <!-- Ključno je, da uporabiš 'id' iz for zanke in dodaš gumb -->
+                        <strong>{{ note.title }}</strong> 
+                        <a href="/dashboard/{{ id }}?user={{ target_user }}" 
+                        style="margin-left: 10px; padding: 3px 8px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+                        UREDI
+                        </a>
+                    </li>
                 {% endfor %}
-            {% else %}
-                <p>Uporabnik nima zapiskov.</p>
-            {% endif %}
+            </ul>
+        {% else %}
+            <p><strong>{{ target_user }} nima nobenih zapiskov</strong></p>
+        {% endif %}
         </div>
 
         {% if admin == 2 %}

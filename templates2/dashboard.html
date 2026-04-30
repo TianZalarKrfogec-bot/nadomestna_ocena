@@ -61,7 +61,11 @@
             {% if posts %}
                 {% for post in posts %}
                 <div class="post-card" id="post-{{ post.id }}">
-                    <div class="post-header">@{{ post.username }}</div>
+                    <div class="post-header">
+                        <a href="/profile/{{ post.username }}" style="text-decoration: none; color: inherit; font-weight: bold;">
+                            @{{ post.username }}
+                        </a>
+                    </div>
                     
                     {# Kontrole - vidne le avtorju ali adminu #}
                     {% if post.username == uporabnik or admin in [1, 2] %}
@@ -162,5 +166,7 @@
         });
     }
     </script>
+
 </body>
 </html>
+
