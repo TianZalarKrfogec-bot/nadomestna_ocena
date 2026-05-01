@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="glass-panel" style="max-width: 900px; display: flex; gap: 30px; align-items: flex-start;">
+    <div style="flex: 1;">
+        <img src="{{ item.image }}" style="width: 100%; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        
+        {# Popravljen gumb za priljubljene #}
+        <a href="/favorite/{{ item.type }}/{{ item.id }}?title={{ item.title|urlencode }}&poster={{ item.image|urlencode }}" 
+           class="btn" 
+           style="margin-top: 1rem; background: {% if is_fav %}#ef4444{% else %}#374151{% endif %}; text-align: center; display: block; text-decoration: none;">
+            {{ '❤️ Odstrani iz priljubljenih' if is_fav else '🤍 Dodaj med priljubljene' }}
+        </a>
+    </div>
+    
+    <div style="flex: 2;">
+        {# Naslov s povprečno oceno #}
+        <h1 style="color: #c4b5fd; display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            {{ item.title }}
+            <span style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; padding: 5px 15px; border-radius: 20px; font-size: 1.1rem; border: 1px solid rgba(251, 191, 36, 0.3); white-space: nowrap;">
+                ⭐ {{ avg_rating }}{% if avg_rating != "Ni ocen" %}/5{% endif %}
+            </span>
+        </h1>
+
+        <p style="color: #94a3b8; margin: 1rem 0; line-height: 1.6;">{{ item.description }}</p>
+        
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;">
+        
+        <h3>Dodaj svojo oceno</h3>
+        <form action="/rate" method="POST" style="margin-top: 1rem;">
+            <input type="hidden" name="media_id" value="{{ item.id }}">
+            <input type="hidden" name="media_type" value="{{ item.type }}">
+            
+            <div class="form-group">
+                <label>Ocena (1-5 zvezdic)</label>
+                <select name="score" style="width: auto;">
+                    <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                    <option value="4">⭐⭐⭐⭐ (4)</option>
+                    <option value="3">⭐⭐⭐ (3)</option>
+                    <option value="2">⭐⭐ (2)</option>
+                    <option value="1">⭐ (1)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Tvoj komentar</label>
+                <textarea name="comment" rows="3" style="width: 100%; background: rgba(0,0,0,0.3); color: white; border: 1px solid #8b5cf6; border-radius: 10px; padding: 10px;"></textarea>
+            </div>
+            <button type="submit" class="btn">Objavi komentar</button>
+        </form>
+
+        <div style="margin-top: 3rem;">
+            <h3>Komentarji uporabnikov</h3>
+            {% for r in ratings %}
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 10px;">
+                    <strong style="color: #a78bfa;">@{{ r.user.username if r.user else 'Anon' }}</strong> 
+                    <span style="color: #fbbf24; margin-left: 10px;">{{ "⭐" * (r.score or 0) }}</span>
+                    <p style="margin-top: 5px;">{{ r.comment }}</p>
+                    <small style="color: #64748b;">{{ r.timestamp.strftime('%d. %m. %Y') if r.timestamp else '' }}</small>
+                </div>
+            {% else %}
+                <p style="color: #64748b; margin-top: 10px;">Bodi prvi, ki bo komentiral!</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

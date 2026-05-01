@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="width: 100%; max-width: 1000px;">
+    <h1 style="margin-bottom: 2rem;">Tvoj Profil: @{{ session.username }}</h1>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+        <section>
+            <h3 style="color: #ef4444; margin-bottom: 1rem;">❤️ Priljubljene vsebine</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;">
+                {% for fav in favorites %}
+                <div class="glass-panel" style="padding: 5px; text-align: center;">
+                    <img src="{{ fav.poster_path }}" style="width: 100%; border-radius: 5px;">
+                    <a href="/view/{{ 'movie' if 'tmdb' in fav.poster_path else 'book' }}/{{ fav.media_id }}" style="color: white; font-size: 0.7rem; display: block; margin-top: 5px;">{{ fav.media_title }}</a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section>
+            <h3 style="color: #a78bfa; margin-bottom: 1rem;">✍️ Tvoje ocene</h3>
+            {% for r in ratings %}
+                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                    <span style="color: #fbbf24;">{{ "⭐" * r.score }}</span>
+                    <p style="font-size: 0.9rem;">{{ r.comment }}</p>
+                </div>
+            {% endfor %}
+        </section>
+    </div>
+</div>
+{% endblock %}

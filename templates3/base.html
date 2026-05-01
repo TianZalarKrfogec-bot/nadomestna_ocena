@@ -124,10 +124,12 @@
         <div class="nav-links">
             {% if session.user_id %}
                 <a href="/dashboard">Dashboard</a>
+                <a href="/profile">Profil</a>
                 <a href="/logout">Odjava</a>
             {% else %}
                 <a href="/login">Prijava</a>
                 <a href="/register">Registracija</a>
+                <a href="/dashboard">Dashboard</a>
             {% endif %}
         </div>
     </div>

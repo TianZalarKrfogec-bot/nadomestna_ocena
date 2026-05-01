@@ -1,11 +1,43 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="glass-panel" style="max-width: 800px; width: 100%;">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 2rem;">
-        <h2>Dobrodošel, @{{ username }}!</h2>
+<div style="width: 100%; max-width: 1000px;">
+    <!-- Iskalnik -->
+    <div class="glass-panel" style="margin-bottom: 2rem; max-width: 100%;">
+        <form action="/search" method="GET" style="display: flex; gap: 10px;">
+            <input type="text" name="query" placeholder="Poišči film, serijo ali knjigo..." 
+                   value="{{ query if query else '' }}" 
+                   style="flex: 1; padding: 1rem; border-radius: 30px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #8b5cf6;">
+            <button type="submit" class="btn" style="width: auto; padding: 0 2rem; border-radius: 30px;">Išči</button>
+        </form>
     </div>
-    
-    <p style="color: #cbd5e1; text-align: center;">Tukaj bo jutri nastal iskalnik filmov in serij (TMDB API) ter sekcija za MBTI glasovanje!</p>
+
+    {% if movies or books %}
+        <h3 style="margin-bottom: 1rem; color: #c4b5fd;">Rezultati za: "{{ query }}"</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;">
+            <!-- Filmi -->
+            {% for movie in movies %}
+            <div class="glass-panel" style="padding: 10px; text-align: center; transition: 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" style="width: 100%; border-radius: 10px; margin-bottom: 10px;" onerror="this.src='https://via.placeholder.com/500x750?text=Ni+slike'">
+                <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; height: 40px; overflow: hidden;">{{ movie.title }}</p>
+                <a href="/view/movie/{{ movie.id }}" class="btn" style="font-size: 0.8rem; padding: 5px;">Poglej več</a>
+            </div>
+            {% endfor %}
+
+            <!-- Knjige -->
+            {% for book in books %}
+            <div class="glass-panel" style="padding: 10px; text-align: center; border-color: #10b981;">
+                <img src="https://covers.openlibrary.org/b/id/{{ book.cover_i }}-M.jpg" style="width: 100%; border-radius: 10px; margin-bottom: 10px;" onerror="this.src='https://via.placeholder.com/500x750?text=Ni+slike'">
+                <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; height: 40px; overflow: hidden;">{{ book.title }}</p>
+                <a href="/view/book/{{ book.key.split('/')[-1] }}" class="btn" style="font-size: 0.8rem; padding: 5px; background: #059669;">Poglej več</a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-panel" style="text-align: center;">
+            <h2>Dobrodošel v Fiction Chat!</h2>
+            <p>Uporabi zgornji iskalnik, da najdeš svojo naslednjo najljubšo zgodbo.</p>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
