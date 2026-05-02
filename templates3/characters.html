@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="width: 100%; max-width: 1000px;">
+    <!-- Iskalnik likov -->
+    <div class="glass-panel" style="margin-bottom: 2rem; border-color: #f472b6;">
+        <h2 style="color: #f472b6; margin-bottom: 1rem;">Išči fiktivne like</h2>
+        <form action="/characters" method="GET" style="display: flex; gap: 10px;">
+            <input type="text" name="query" placeholder="Vpiši ime lika (npr. Joker, Itachi, Batman)..." 
+                   value="{{ query if query else '' }}" 
+                   style="flex: 1; padding: 1rem; border-radius: 30px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #f472b6;">
+            <button type="submit" class="btn" style="width: auto; background: #db2777; border-radius: 30px;">Išči</button>
+        </form>
+    </div>
+
+    {% if chars %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;">
+            {% for char in chars %}
+            <div class="glass-panel" style="padding: 10px; text-align: center; border-color: #f472b6;">
+                <img src="{{ char.images.jpg.image_url }}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
+                <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; height: 40px; overflow: hidden;">{{ char.name }}</p>
+                <a href="/view/character/{{ char.mal_id }}" class="btn" style="font-size: 0.8rem; padding: 5px; background: #db2777;">MBTI & Ocena</a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-panel" style="text-align: center;">
+            <p>Vpiši ime v zgornji iskalnik, da najdeš like iz sveta animejev in filmov.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -11,6 +11,12 @@
         </form>
     </div>
 
+    <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
+        <a href="/characters" class="btn" style="background: linear-gradient(45deg, #f472b6, #8b5cf6); width: auto; padding: 1rem 3rem; border-radius: 50px; font-weight: bold; text-decoration: none; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);">
+            ✨ Raziskuj like & MBTI
+        </a>
+    </div>
+
     {% if movies or books %}
         <h3 style="margin-bottom: 1rem; color: #c4b5fd;">Rezultati za: "{{ query }}"</h3>
         
@@ -32,6 +38,16 @@
                 <a href="/view/book/{{ book.key.split('/')[-1] }}" class="btn" style="font-size: 0.8rem; padding: 5px; background: #059669;">Poglej več</a>
             </div>
             {% endfor %}
+
+            <!-- Anime rezultati -->
+            {% for anime in animes %}
+            <div class="glass-panel" style="padding: 10px; text-align: center; border-color: #f472b6;">
+                <img src="{{ anime.images.jpg.image_url }}" style="width: 100%; border-radius: 10px; margin-bottom: 10px; height: 250px; object-fit: cover;">
+                <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; height: 40px; overflow: hidden;">{{ anime.title }}</p>
+                <a href="/view/anime/{{ anime.mal_id }}" class="btn" style="font-size: 0.8rem; padding: 5px; background: #db2777;">Poglej več</a>
+            </div>
+            {% endfor %}
+
         </div>
     {% else %}
         <div class="glass-panel" style="text-align: center;">

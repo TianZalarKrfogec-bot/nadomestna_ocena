@@ -50,15 +50,14 @@
 
         <div style="margin-top: 3rem;">
             <h3>Komentarji uporabnikov</h3>
-            {% for r in ratings %}
-                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 10px;">
-                    <strong style="color: #a78bfa;">@{{ r.user.username if r.user else 'Anon' }}</strong> 
-                    <span style="color: #fbbf24; margin-left: 10px;">{{ "⭐" * (r.score or 0) }}</span>
+            {% for r, u in ratings %}
+                <div class="glass-panel" style="margin-top: 10px; border-color: rgba(255,255,255,0.1);">
+                    <a href="/user/{{ u.username }}" style="text-decoration: none;">
+                        <strong style="color: #a78bfa;">@{{ u.username }}</strong>
+                    </a>
+                    <span style="color: #fbbf24; margin-left: 10px;">{{ "⭐" * r.score }}</span>
                     <p style="margin-top: 5px;">{{ r.comment }}</p>
-                    <small style="color: #64748b;">{{ r.timestamp.strftime('%d. %m. %Y') if r.timestamp else '' }}</small>
                 </div>
-            {% else %}
-                <p style="color: #64748b; margin-top: 10px;">Bodi prvi, ki bo komentiral!</p>
             {% endfor %}
         </div>
     </div>

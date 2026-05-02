@@ -36,6 +36,16 @@ def search_books(query):
         print(f"Napaka pri Open Library: {e}")
     return []
 
+def search_anime(query):
+    url = f"https://api.jikan.moe/v4/anime?q={query}&limit=10"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json().get('data', [])
+    except Exception as e:
+        print(f"Napaka pri Anime API: {e}")
+    return []
+
 # Osnovna konfiguracija v skladu z tvojo sliko ogrodja
 app = Flask(__name__, 
             template_folder='templates3', 
@@ -71,6 +81,12 @@ class Rating(db.Model):
     character_name = db.Column(db.String(100))
     mbti_vote = db.Column(db.String(4))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+class MBTIVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    char_id = db.Column(db.String(50), nullable=False)
+    mbti_type = db.Column(db.String(4), nullable=False) # npr. 'INTJ'
 
 class Favorite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -195,17 +211,15 @@ def dashboard():
 
 @app.route("/search", methods=["GET"])
 def search():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-    
+    if "user_id" not in session: return redirect(url_for("login"))
     query = request.args.get("query")
-    if not query:
-        return redirect(url_for("dashboard"))
+    if not query: return redirect(url_for("dashboard"))
     
     movies = search_movies(query)
     books = search_books(query)
+    animes = search_anime(query) # Novo
     
-    return render_template("dashboard.html", movies=movies, books=books, query=query, username=session["username"])
+    return render_template("dashboard.html", movies=movies, books=books, animes=animes, query=query, username=session["username"])
 
 @app.route("/view/<media_type>/<media_id>")
 def view_media(media_type, media_id):
@@ -224,6 +238,18 @@ def view_media(media_type, media_id):
             'image': f"https://image.tmdb.org/t/p/w500{res.get('poster_path')}" if res.get('poster_path') else None,
             'type': 'movie'
         }
+
+    elif media_type == "anime":
+        url = f"https://api.jikan.moe/v4/anime/{media_id}"
+        res = requests.get(url).json().get('data', {})
+        media_data = {
+            'id': media_id,
+            'title': res.get('title'),
+            'description': res.get('synopsis'),
+            'image': res.get('images', {}).get('jpg', {}).get('large_image_url'),
+            'type': 'anime'
+        }
+
     else: # book
         url = f"https://openlibrary.org/works/{media_id}.json"
         res = requests.get(url).json()
@@ -239,7 +265,7 @@ def view_media(media_type, media_id):
     avg_result = db.session.query(func.avg(Rating.score)).filter(Rating.media_id == media_id).scalar()
     display_avg = round(avg_result, 1) if avg_result else "Ni ocen"
 
-    all_ratings = Rating.query.filter_by(media_id=media_id).order_by(Rating.timestamp.desc()).all()
+    all_ratings = db.session.query(Rating, User).join(User, Rating.user_id == User.id).filter(Rating.media_id == media_id).order_by(Rating.timestamp.desc()).all()
     is_fav = Favorite.query.filter_by(user_id=session["user_id"], media_id=media_id).first()
 
     return render_template("view_media.html", 
@@ -291,6 +317,66 @@ def profile():
     user_favs = Favorite.query.filter_by(user_id=session["user_id"]).all()
     user_ratings = Rating.query.filter_by(user_id=session["user_id"]).all()
     return render_template("profile.html", favorites=user_favs, ratings=user_ratings)
+
+@app.route("/user/<username>")
+def public_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    user_favs = Favorite.query.filter_by(user_id=user.id).all()
+    user_ratings = Rating.query.filter_by(user_id=user.id).all()
+    return render_template("public_profile.html", profile_user=user, favorites=user_favs, ratings=user_ratings)
+
+# Iskanje likov (Jikan API)
+def search_characters(query):
+    url = f"https://api.jikan.moe/v4/characters?q={query}&limit=12"
+    try:
+        res = requests.get(url)
+        return res.json().get('data', [])
+    except: return []
+
+@app.route("/characters", methods=["GET"])
+def characters_dashboard():
+    query = request.args.get("query")
+    chars = []
+    if query:
+        # Kličemo pomožno funkcijo, ki jo že imaš
+        chars = search_characters(query) 
+    
+    # Prepričaj se, da tukaj piše chars=chars (množina)
+    return render_template("characters.html", chars=chars, query=query)
+
+@app.route("/view/character/<char_id>")
+def view_character(char_id):
+    # Pridobivanje podatkov o liku
+    res = requests.get(f"https://api.jikan.moe/v4/characters/{char_id}").json().get('data', {})
+    char_data = {
+        'id': char_id,
+        'name': res.get('name'),
+        'description': res.get('about'),
+        'image': res.get('images', {}).get('jpg', {}).get('image_url'),
+        'type': 'character'
+    }
+    
+    # MBTI logika - preštejemo glasove
+    votes = db.session.query(MBTIVote.mbti_type, func.count(MBTIVote.mbti_type)).filter_by(char_id=char_id).group_by(MBTIVote.mbti_type).all()
+    # Komentarji in priljubljeni (isto kot pri filmih)
+    all_ratings = db.session.query(Rating, User).join(User, Rating.user_id == User.id).filter(Rating.media_id == char_id).order_by(Rating.timestamp.desc()).all()
+    is_fav = Favorite.query.filter_by(user_id=session["user_id"], media_id=char_id).first()
+    
+    return render_template("view_character.html", char=char_data, votes=votes, ratings=all_ratings, is_fav=is_fav)
+
+@app.route("/vote_mbti", methods=["POST"])
+def vote_mbti():
+    char_id = request.form.get("char_id")
+    mbti = request.form.get("mbti_type")
+    # Preverimo, če je uporabnik že glasoval za tega lika (da ne spama)
+    existing = MBTIVote.query.filter_by(user_id=session["user_id"], char_id=char_id).first()
+    if existing:
+        existing.mbti_type = mbti
+    else:
+        new_vote = MBTIVote(user_id=session["user_id"], char_id=char_id, mbti_type=mbti)
+        db.session.add(new_vote)
+    db.session.commit()
+    return redirect(url_for('view_character', char_id=char_id))
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

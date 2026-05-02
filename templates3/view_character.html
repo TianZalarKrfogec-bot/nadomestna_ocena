@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="glass-panel" style="max-width: 1000px; display: flex; gap: 40px; align-items: flex-start;">
+    <div style="flex: 1;">
+        <img src="{{ char.image }}" style="width: 100%; border-radius: 20px; border: 2px solid #f472b6;">
+        <a href="/favorite/character/{{ char.id }}?title={{ char.name|urlencode }}&poster={{ char.image|urlencode }}" 
+           class="btn" style="margin-top: 1rem; background: {{ '#ef4444' if is_fav else '#374151' }}; text-align: center; display: block; text-decoration: none;">
+             {{ '❤️ Odstrani iz profila' if is_fav else '💖 Dodaj med priljubljene like' }}
+        </a>
+    </div>
+
+    <div style="flex: 2;">
+        <h1 style="color: #f472b6;">{{ char.name }}</h1>
+        
+        <!-- MBTI Rezultati -->
+        <div style="display: flex; gap: 10px; margin: 1.5rem 0; flex-wrap: wrap;">
+            {% for type, count in votes %}
+            <span style="background: #8b5cf6; color: white; padding: 5px 15px; border-radius: 8px; font-weight: bold;">
+                {{ type }}: {{ count }} glasov
+            </span>
+            {% else %}
+                <p style="color: #64748b;">Še ni MBTI glasov. Bodi prvi!</p>
+            {% endfor %}
+        </div>
+
+        <p style="color: #cbd5e1; white-space: pre-line; font-size: 0.95rem; max-height: 300px; overflow-y: auto; padding-right: 10px;">{{ char.description }}</p>
+
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 2rem 0;">
+
+        <!-- MBTI Glasovanje -->
+        <div style="background: rgba(139, 92, 246, 0.1); padding: 20px; border-radius: 15px; border: 1px solid rgba(139, 92, 246, 0.3);">
+            <h3>Glasuj za MBTI osebnost</h3>
+            <form action="/vote_mbti" method="POST" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                <input type="hidden" name="char_id" value="{{ char.id }}">
+                <select name="mbti_type" style="flex: 1; min-width: 150px; background: rgba(0,0,0,0.5); color: white; border: 1px solid #8b5cf6; border-radius: 5px; padding: 5px;">
+                    {% for m in ['INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP'] %}
+                    <option value="{{ m }}">{{ m }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn" style="width: auto;">Glasuj</button>
+            </form>
+        </div>
+
+        <!-- Klasično ocenjevanje -->
+        <h3 style="margin-top: 2rem;">Tvoja ocena lika</h3>
+        <form action="/rate" method="POST" style="margin-top: 1rem;">
+            <input type="hidden" name="media_id" value="{{ char.id }}">
+            <input type="hidden" name="media_type" value="character">
+            <select name="score" style="width: auto; margin-bottom: 10px; background: rgba(0,0,0,0.5); color: white; border-radius: 5px; padding: 5px;">
+                <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                <option value="4">⭐⭐⭐⭐ (4)</option>
+                <option value="3">⭐⭐⭐ (3)</option>
+                <option value="2">⭐⭐ (2)</option>
+                <option value="1">⭐ (1)</option>
+            </select>
+            <textarea name="comment" rows="2" placeholder="Tvoj komentar na tega lika..." style="width: 100%; margin-bottom: 10px; background: rgba(0,0,0,0.3); color: white; border: 1px solid #8b5cf6; border-radius: 10px; padding: 10px;"></textarea>
+            <button type="submit" class="btn" style="background: #374151;">Objavi komentar</button>
+        </form>
+
+        <!-- Prikaz komentarjev o liku -->
+        <div style="margin-top: 3rem;">
+            <h3>Komentarji o liku</h3>
+            {% for r, u in ratings %}
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 10px;">
+                    <a href="/user/{{ u.username }}" style="text-decoration: none;">
+                        <strong style="color: #a78bfa;">@{{ u.username }}</strong>
+                    </a>
+                    <span style="color: #fbbf24; margin-left: 10px;">{{ "⭐" * r.score }}</span>
+                    <p style="margin-top: 5px;">{{ r.comment }}</p>
+                </div>
+            {% else %}
+                <p style="color: #64748b; margin-top: 10px;">Nihče še ni komentiral tega lika.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
